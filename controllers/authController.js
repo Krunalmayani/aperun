@@ -15,7 +15,7 @@ exports.register = async (req, res, next) => {
 
   try {
     const [row] = await connection.execute(
-      "SELECT `email` FROM `loginUser` WHERE `email`=?",
+      "SELECT email FROM loginUser WHERE `email`=?",
       [req.body.email]
     );
 
@@ -28,7 +28,7 @@ exports.register = async (req, res, next) => {
 
     const hashPass = await bcrypt.hash(req.body.password, 12);
     const [rows] = await connection.execute(
-      "INSERT INTO `users`(`yourname`,`email`,`walletaddress`,`created_date`,`updated_date`) VALUES(?,?,?,?,?)",
+      "INSERT INTO users(`yourname`,`email`,`walletaddress`,`created_date`,`updated_date`) VALUES(?,?,?,?,?)",
       [
         req?.body?.yourname,
         req?.body?.email,
@@ -40,19 +40,19 @@ exports.register = async (req, res, next) => {
 
     if (rows.affectedRows === 1) {
       const [col] = await connection.execute(
-        "SELECT * FROM `users` WHERE `email`=?",
+        "SELECT * FROM users WHERE email=?",
         [req?.body?.email]
       );
 
       if (col.length > 0) {
         const [row] = await connection.execute(
-          "INSERT INTO `loginUser`(`userID`,`email`,`password`) VALUES(?,?,?)",
+          "INSERT INTO loginUser(`userID`,`email`,`password`) VALUES(?,?,?)",
           [col[0]?.id, req?.body?.email, hashPass]
         );
 
         const [val] = await connection.execute(
-          "INSERT INTO `leaderboard`(`userID`,`coin`,`creditlife`,`created_date`,`updated_date`) VALUES(?,?,?,?,?)",
-          [col[0]?.id, 0,0, new Date(), new Date()]
+          "INSERT INTO leaderboard(`userID`,`coin`,`creditlife`,`created_date`,`updated_date`) VALUES(?,?,?,?,?)",
+          [col[0]?.id, 0, 0, new Date(), new Date()]
         );
 
         if (row.affectedRows === 1 && val.affectedRows === 1) {
@@ -82,12 +82,11 @@ exports.login = async (req, res, next) => {
 
   try {
     const [row] = await connection.execute(
-      "SELECT * FROM `loginUser` WHERE `email`=?",
+      "SELECT * FROM loginUser WHERE email=?",
       [req.body.email]
     );
 
     const [col] = await connection.execute(
-      // "SELECT * FROM `users` WHERE `email`=?",
       "select * from users  JOIN leaderboard on users.id = leaderboard.userID WHERE users.email=?",
       [req.body.email]
     );
@@ -112,15 +111,15 @@ exports.login = async (req, res, next) => {
     });
     if (theToken) {
       const [rows] = await connection.execute(
-        "UPDATE `loginUser` SET usertoken=?  WHERE `email`=?",
+        "UPDATE loginUser SET usertoken=?  WHERE email=?",
         [theToken, req.body.email]
       );
       return res.json({
-          success: true,
-          message: "Logged in successfully 😊",
-          token: theToken,
-          user: col[0],
-        });
+        success: true,
+        message: "Logged in successfully 😊",
+        token: theToken,
+        user: col[0],
+      });
     } else {
       return res.json({
         success: false,
@@ -140,11 +139,10 @@ exports.forgotEmail = async (req, res, next) => {
   }
 
   var email = req.body.email;
-  
 
   try {
     const [row] = await connection.execute(
-      "SELECT * FROM `loginUser` WHERE `email`=?",
+      "SELECT * FROM loginUser WHERE email=?",
       [email]
     );
 
@@ -157,25 +155,25 @@ exports.forgotEmail = async (req, res, next) => {
         lowerCaseAlphabets: false,
       });
       console.log("OTP ::", OTP);
-      
+
       const [val] = await connection.execute(
-        "UPDATE `loginUser` SET otp=?  WHERE `email`=?",
+        "UPDATE loginUser SET otp=?  WHERE email=?",
         [OTP, email]
       );
 
       var sent = await sendEmail(email, token, OTP);
 
       return res.json({
-          status: 200,
-          success: true,
-          message: "Please check your email for a new password",
-        });
+        status: 200,
+        success: true,
+        message: "Please check your email for a new password",
+      });
     }
   } catch (err) {
     console.log("err ::-", err);
     next(err);
   }
-  
+
   return res.json({ success: false, message: req.body?.email + " is not found !" });
 };
 
@@ -190,12 +188,12 @@ exports.verifyEmail = async (req, res, next) => {
 
   try {
     const [row] = await connection.execute(
-      "SELECT * FROM `loginUser` WHERE `otp`=?",
+      "SELECT * FROM loginUser WHERE otp=?",
       [otp]
     );
     if (row.length > 0) {
       const [rows] = await connection.execute(
-        "UPDATE `loginUser` SET otp=?  WHERE `otp`=?",
+        "UPDATE loginUser SET otp=?  WHERE otp=?",
         [null, otp]
       );
       return res.json({ success: true, status: 200, message: "your otp is verify !" });
@@ -221,21 +219,21 @@ exports.forgotpassword = async (req, res, next) => {
   const hashPass = await bcrypt.hash(req.body.password, 12);
   try {
     const [row] = await connection.execute(
-      "SELECT * FROM `loginUser` WHERE `email`=?",
+      "SELECT * FROM loginUser WHERE email=?",
       [email]
     );
     if (row.length > 0) {
       const [rows] = await connection.execute(
-        "UPDATE `loginUser` SET password=?  WHERE `email`=?",
+        "UPDATE loginUser SET password=?  WHERE email=?",
         [hashPass, email]
       );
       if (rows.affectedRows === 1) {
 
         return res.json({
-            success: true,
-            message:
-              "Password reset successful, you can now login with the new password",
-          });
+          success: true,
+          message:
+            "Password reset successful, you can now login with the new password",
+        });
       } else {
         return res.json({ success: false, message: "Password not forgot !" });
       }
@@ -257,7 +255,7 @@ exports.changepassword = async (req, res, next) => {
   const token = req?.headers?.authorization?.split(" ")[1];
 
   const [row] = await connection.execute(
-    "SELECT * FROM `loginUser` WHERE `usertoken`=?",
+    "SELECT * FROM loginUser WHERE usertoken=?",
     [token]
   );
 
@@ -273,14 +271,14 @@ exports.changepassword = async (req, res, next) => {
       return res.json({ success: false, message: "Incorrect old password" });
     } else {
       const [val] = await connection.execute(
-        "UPDATE `loginUser` SET password=?  WHERE `usertoken`=?",
+        "UPDATE loginUser SET password=?  WHERE usertoken=?",
         [hashNewPass, token]
       );
       return res.json({
-          status: 200,
-          success: true,
-          message: "New password has been succesfully updated !",
-        });
+        status: 200,
+        success: true,
+        message: "New password has been succesfully updated !",
+      });
     }
   } else {
     return res.json({ success: false, message: "auth Token is not true" });
@@ -339,7 +337,7 @@ exports.changeWalletAddress = async (req, res, next) => {
     "SELECT * FROM loginUser cross join users on loginUser.userID = users.id  WHERE loginUser.usertoken=?",
     [token]
   );
-  
+
   if (row.length > 0) {
     const [rows] = await connection.execute(
       "UPDATE users SET walletaddress=?  WHERE id=? ",
@@ -371,10 +369,10 @@ exports.getUser = async (req, res, next) => {
   }
   const token = req?.headers?.authorization?.split(" ")[1];
   try {
-    const [row] = 
-    await connection.execute(
-      'select * from loginuser cross join users on loginuser.userID = users.id cross join leaderboard on leaderboard.userID = users.id cross join withdrawhistory on withdrawhistory.userID = users.id   where loginuser.usertoken=?',
-      [token])
+    const [row] =
+      await connection.execute(
+        'select * from loginuser cross join users on loginuser.userID = users.id cross join leaderboard on leaderboard.userID = users.id cross join withdrawhistory on withdrawhistory.userID = users.id   where loginuser.usertoken=?',
+        [token])
 
     if (row.length > 0) {
       return res.json({ data: row[0], success: true })
@@ -396,9 +394,9 @@ exports.getAllUser = async (req, res, next) => {
   }
 
   try {
-    const [row] = 
-    await connection.execute(
-      'select * from loginuser cross join users on loginuser.userID = users.id cross join leaderboard on leaderboard.userID = users.id ')
+    const [row] =
+      await connection.execute(
+        'select * from loginuser cross join users on loginuser.userID = users.id cross join leaderboard on leaderboard.userID = users.id ')
 
     if (row.length > 0) {
       return res.json({ data: row, success: true })

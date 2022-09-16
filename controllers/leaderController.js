@@ -10,7 +10,7 @@ exports.updateTotalCoin = async (req, res, next) => {
 
   var coin = req?.body?.coin;
   const token = req?.headers?.authorization?.split(" ")[1];
-  
+
   try {
     if (token) {
       const [row] = await connection.execute(
@@ -18,12 +18,11 @@ exports.updateTotalCoin = async (req, res, next) => {
         [token]
       );
 
-        let totalCoin = Number(coin) + row[0].coin;
-
+      let totalCoin = Number(coin) + row[0].coin;
 
       if (row.length > 0) {
         const [rows] = await connection.execute(
-          "UPDATE `leaderboard` SET coin=?,updated_date=?  WHERE `userID`=?",
+          "UPDATE leaderboard SET coin=?,updated_date=?  WHERE userID=?",
           [totalCoin, new Date(), row[0]?.userID]
         );
 
@@ -61,7 +60,7 @@ exports.updateCreditLife = async (req, res, next) => {
 
       if (row.length > 0) {
         const [rows] = await connection.execute(
-          "UPDATE `leaderboard` SET creditlife=?,updated_date=?  WHERE `userID`=?",
+          "UPDATE leaderboard SET creditlife=?,updated_date=?  WHERE userID=?",
           [Number(credit) + row[0].creditlife, new Date(), row[0]?.userID]
         );
         if (rows.affectedRows === 1) {
@@ -94,7 +93,6 @@ exports.getScoreAll = async (req, res, next) => {
       const [row] = await connection.execute(
         "SELECT users.id,users.yourname, leaderboard.coin,leaderboard.creditlife  FROM users cross join loginUser on loginUser.userID = users.id cross join leaderboard on leaderboard.userID = users.id"
       );
-      // `select u.yourname "users", b.coin "leaderboard" from users u, leaderboard b, loginUser l where b.userID = u.id and b.userID = l.userID and l.usertoken=?`
 
       if (row.length > 0) {
         return res.json({ success: true, coinInfo: row });
@@ -171,7 +169,7 @@ exports.withdrawCoin = async (req, res, next) => {
       if (row.length > 0) {
         if (row[0].coin >= amount) {
           const [col] = await connection.execute(
-            "INSERT INTO `withdrawhistory`(`userID`,`email`,`walletaddress`,`amount`,`created_date`) VALUES(?,?,?,?,?)",
+            "INSERT INTO withdrawhistory(`userID`,`email`,`walletaddress`,`amount`,`created_date`) VALUES(?,?,?,?,?)",
             [
               row[0]?.userID,
               row[0]?.email,

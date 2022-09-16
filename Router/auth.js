@@ -13,7 +13,7 @@ router.use(cors());
 // Configuring body parser middleware
 router.use(bodyParser.urlencoded({ extended: false }));
 router.use(bodyParser.json());
-router.use(forms.array()); 
+router.use(forms.array());
 
 router.post('/login', [
     body('email', "Invalid email address").notEmpty().escape().trim().isEmail(),
@@ -45,11 +45,11 @@ router.post('/verify-email', [
     body('otp', "OTP is not valid").notEmpty().trim().isLength({ min: 6 })
 ], verifyEmail)
 
-router.post('/changeWalletAddress',[
+router.post('/changeWalletAddress', [
     body('walletaddress', "Fill this feild").notEmpty(),
-],changeWalletAddress)
+], changeWalletAddress)
 
-router.get('/getUser',getUser)
-router.get('/getAllUser',getAllUser)
+router.get('/getUser', getUser)
+router.get('/getAllUser', getAllUser)
 
 module.exports = router;
