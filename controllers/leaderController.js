@@ -131,15 +131,10 @@ exports.getScorebyId = async (req, res, next) => {
       if (row.length > 0) {
         return res.json({ success: true, coinInfo: row });
       } else {
-        return res.json({
-          success: false,
-          message: "Data not found !",
-        });
+        return res.json({ success: false, message: "Data not found !" });
       }
     } catch (error) {
-      console.log("error", error);
-
-      return res.json({ success: false, message: error });
+      return res.json({ success: false, error });
     }
   } else {
     return res.json({
@@ -170,29 +165,21 @@ exports.withdrawCoin = async (req, res, next) => {
         if (row[0].coin >= amount) {
           const [col] = await connection.execute(
             "INSERT INTO withdrawhistory(`userID`,`email`,`walletaddress`,`amount`,`created_date`) VALUES(?,?,?,?,?)",
-            [
-              row[0]?.userID,
-              row[0]?.email,
-              row[0]?.walletaddress,
-              amount,
-              new Date(),
-            ]
+            [row[0]?.userID, row[0]?.email, row[0]?.walletaddress, amount, new Date()]
           );
+
           if (col.affectedRows === 1) {
             const [rows] = await connection.execute(
               "UPDATE leaderboard SET coin=?  WHERE userID=? ",
               [row[0].coin - amount, row[0]?.userID]
             );
+
             if (rows.affectedRows === 1) {
               const [cols] = await connection.execute(
                 "SELECT * FROM users cross join leaderboard on leaderboard.userID = users.id WHERE users.id=? ",
                 [row[0]?.userID]
               );
-              return res.json({
-                success: true,
-                message: "successfully withdraw Coin !",
-                data: cols[0],
-              });
+              return res.json({ success: true, message: "successfully withdraw Coin !", data: cols[0], });
             }
           } else {
             return res.json({ success: false, message: "Some Error Please try again !", });

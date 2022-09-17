@@ -1,7 +1,5 @@
 require('dotenv').config();
 var express = require("express");
-const connection = require('./db.js');
-
 
 const authRouter = require("./Router/auth.js");
 const leaderRouter = require("./Router/leaderRouter")

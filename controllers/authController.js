@@ -29,13 +29,7 @@ exports.register = async (req, res, next) => {
     const hashPass = await bcrypt.hash(req.body.password, 12);
     const [rows] = await connection.execute(
       "INSERT INTO users(`yourname`,`email`,`walletaddress`,`created_date`,`updated_date`) VALUES(?,?,?,?,?)",
-      [
-        req?.body?.yourname,
-        req?.body?.email,
-        req?.body?.walletaddress,
-        new Date(),
-        new Date(),
-      ]
+      [req?.body?.yourname, req?.body?.email, req?.body?.walletaddress, new Date(), new Date()]
     );
 
     if (rows.affectedRows === 1) {
@@ -106,9 +100,8 @@ exports.login = async (req, res, next) => {
       });
     }
 
-    const theToken = jwt.sign({ id: row[0].userID }, "the-super-strong-secrect", {
-      expiresIn: "10d",
-    });
+    const theToken = jwt.sign({ id: row[0].userID }, "the-super-strong-secrect", {expiresIn: "10d"});
+
     if (theToken) {
       const [rows] = await connection.execute(
         "UPDATE loginUser SET usertoken=?  WHERE email=?",
@@ -154,14 +147,13 @@ exports.forgotEmail = async (req, res, next) => {
         specialChars: false,
         lowerCaseAlphabets: false,
       });
-      console.log("OTP ::", OTP);
 
       const [val] = await connection.execute(
         "UPDATE loginUser SET otp=?  WHERE email=?",
         [OTP, email]
       );
 
-      var sent = await sendEmail(email, token, OTP);
+      await sendEmail(email, token, OTP);
 
       return res.json({
         status: 200,
@@ -203,7 +195,7 @@ exports.verifyEmail = async (req, res, next) => {
   } catch (error) {
     console.log("error :::", error);
 
-    return res.json({ success: false, message: "error!" });
+    return res.json({ success: false,error });
   }
 };
 
@@ -222,11 +214,13 @@ exports.forgotpassword = async (req, res, next) => {
       "SELECT * FROM loginUser WHERE email=?",
       [email]
     );
+
     if (row.length > 0) {
       const [rows] = await connection.execute(
         "UPDATE loginUser SET password=?  WHERE email=?",
         [hashPass, email]
       );
+
       if (rows.affectedRows === 1) {
 
         return res.json({
@@ -237,6 +231,7 @@ exports.forgotpassword = async (req, res, next) => {
       } else {
         return res.json({ success: false, message: "Password not forgot !" });
       }
+
     } else {
       return res.json({ success: false, message: "email address not found !" });
     }
@@ -260,10 +255,7 @@ exports.changepassword = async (req, res, next) => {
   );
 
   if (row.length > 0) {
-    const passMatch = await bcrypt.compare(
-      req?.body?.oldpassword,
-      row[0]?.password
-    );
+    const passMatch = await bcrypt.compare( req?.body?.oldpassword, row[0]?.password);
 
     const hashNewPass = await bcrypt.hash(req?.body?.newpassword, 12);
 
@@ -343,6 +335,7 @@ exports.changeWalletAddress = async (req, res, next) => {
       "UPDATE users SET walletaddress=?  WHERE id=? ",
       [address, row[0]?.userID]
     );
+
     if (rows.affectedRows === 1) {
       return res.json({
         success: true,
@@ -381,7 +374,6 @@ exports.getUser = async (req, res, next) => {
     }
 
   } catch (error) {
-    console.log('error ::', error);
     return res.json({ success: false, error })
   }
 }
@@ -405,7 +397,6 @@ exports.getAllUser = async (req, res, next) => {
     }
 
   } catch (error) {
-    console.log('error ::', error);
     return res.json({ success: false, error })
   }
 }
