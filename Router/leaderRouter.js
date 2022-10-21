@@ -4,7 +4,7 @@ var multer = require('multer');
 var router = express.Router();
 const bodyParser = require('body-parser');
 const { body } = require('express-validator');
-const { getScorebyId, getScoreAll, updateTotalCoin, updateCreditLife, withdrawCoin } = require('../controllers/leaderController.js');
+const { getScorebyId, getScoreAll, updateTotalCoin, updateCreditLife, withdrawCoin, getAllWithdrawHistory } = require('../controllers/leaderController.js');
 
 var forms = multer();
 
@@ -30,5 +30,6 @@ router.post('/withdrawCoin', [
     body('coinAmount', 'Enter the Amount of coin').notEmpty().escape().trim().isInt({ gt: 0 })
 ], withdrawCoin)
 
+router.get('/withdrawHistory',getAllWithdrawHistory)
 
 module.exports = router;

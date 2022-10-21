@@ -107,10 +107,10 @@ exports.login = async (req, res, next) => {
         "UPDATE loginUser SET usertoken=?  WHERE email=?",
         [theToken, req.body.email]
       );
-      return res.json({
+      return res.status(200).json({
         success: true,
         message: "Logged in successfully 😊",
-        token: theToken,
+        token: JSON.stringify(theToken),
         user: col[0],
       });
     } else {
@@ -364,7 +364,7 @@ exports.getUser = async (req, res, next) => {
   try {
     const [row] =
       await connection.execute(
-        'select * from loginuser cross join users on loginuser.userID = users.id cross join leaderboard on leaderboard.userID = users.id cross join withdrawhistory on withdrawhistory.userID = users.id   where loginuser.usertoken=?',
+        'select * from loginUser cross join users on loginUser.userID = users.id cross join leaderboard on leaderboard.userID = users.id  where loginUser.usertoken=?',
         [token])
 
     if (row.length > 0) {
@@ -388,7 +388,7 @@ exports.getAllUser = async (req, res, next) => {
   try {
     const [row] =
       await connection.execute(
-        'select * from loginuser cross join users on loginuser.userID = users.id cross join leaderboard on leaderboard.userID = users.id ')
+        'select users.id,users.yourname,users.email,users.created_date,users.walletaddress,leaderboard.coin,leaderboard.creditlife,leaderboard.updated_date,leaderboard.userID from users cross join leaderboard on leaderboard.userID = users.id ')
 
     if (row.length > 0) {
       return res.json({ data: row, success: true })

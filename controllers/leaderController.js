@@ -1,5 +1,6 @@
 const { validationResult } = require("express-validator");
 var connection = require("../db").promise();
+const jwt = require("jsonwebtoken");
 
 exports.updateTotalCoin = async (req, res, next) => {
   const errors = validationResult(req);
@@ -120,7 +121,7 @@ exports.getScorebyId = async (req, res, next) => {
 
   const token = req?.headers?.authorization?.split(" ")[1];
   const usewrID = req?.params?.userID;
-
+  
   if (token) {
     try {
       const [row] = await connection.execute(
@@ -197,3 +198,33 @@ exports.withdrawCoin = async (req, res, next) => {
     return res.json({ success: false, message: "Unauthorized accress !" });
   }
 };
+
+
+exports.getAllWithdrawHistory = async (req, res, next) => {
+  const errors = validationResult(req);
+
+  if (!errors.isEmpty()) {
+    return res.status(422).json({ errors: errors.array() });
+  }
+
+  const token = req?.headers?.authorization?.split(" ")[1];
+
+  if (token) {
+    try {
+      const [row] = await connection.execute(
+        "SELECT * FROM withdrawhistory");
+      if (row.length > 0) {
+        return res.status(200).json({ data: row, success: true })
+      } else {
+        return res.json({ success: false, message: "Record Not Found !" });
+      }
+    } catch (error) {
+      return res.json({ success: false, error });
+    }
+  } else {
+    return res.json({
+      success: false,
+      message: "auth Token not found",
+    });
+  }
+}

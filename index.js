@@ -12,7 +12,7 @@ app.get("/", function (req, res) {
     res.send("GET route on things !");
 });
 
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.PORT || 2727;
 
 app.listen(PORT, () => {
     console.log(`server is listening  on ${PORT} \n`);
